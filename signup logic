@@ -1,0 +1,31 @@
+// imports (modular v9+)
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// عند الضغط على Sign Up
+async function signUp(email, password, displayName = "") {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    // اكتب/حدّث الـ user doc
+    await setDoc(doc(db, "users", user.uid), {
+      displayName: displayName,
+      email: user.email,
+      locale: "ar",        // افتراضي، غيّري إذا تريدين
+      theme: "light",
+      tracks: ["cybersecurity"], // مثال مبدئي
+      xp: 0,
+      coins: 0,
+      settings: { notifications: true, reminderHour: 20, contentLength: "short" }
+    }, { merge: true }); // merge عشان ما يمسح أي بيانات موجودة
+    console.log("User created and user doc set:", user.uid);
+  } catch (err) {
+    console.error("Signup error:", err);
+    alert("Signup Failed: " + err.message);
+  }
+}
